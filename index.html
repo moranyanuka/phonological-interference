@@ -419,9 +419,9 @@ footer .wrap { display: grid; gap: 10px; }
 
 <section class="block" id="interference">
   <div class="wrap">
-    <h2>Models lose the phonemes the other language lacks</h2>
+    <h2>Models lose phonemes that only one language has</h2>
     <div class="stack intro prose">
-      <p>For a pair of languages, a phoneme is <em>unshared</em> if one language has it and the other lacks it, like English <span class="ipa">[ɹ]</span> next to French. <em>Recall</em> is the share of these phonemes a model keeps; a phoneme counts as lost when the model deletes it or writes a phoneme of the other language instead.</p>
+      <p>Some phonemes exist in only one of the two languages: English has <span class="ipa">[ɹ]</span>, French does not. We call these phonemes <em>unshared</em>. A model loses one when it deletes it or writes a phoneme of the other language in its place, as in the pairs below. <em>Recall</em> is the share of unshared phonemes a model keeps.</p>
     </div>
     <div class="cards" id="cards"></div>
 
