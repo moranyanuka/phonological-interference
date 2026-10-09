@@ -276,6 +276,15 @@ footer .wrap { display: grid; gap: 10px; }
 .sm-lang:focus-visible .sm-lab { text-decoration: underline; }
 .sm-lang.on .sm-dot { fill: var(--fr); r: 1.35px; }
 .sm-lang.on .sm-lab { fill: var(--fr); }
+/* the hint (steer.js): a ring pulses around one language beside "Click to steer", until the first pick */
+.sm-cue { opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+.steer.hint .sm-cue { opacity: 1; pointer-events: auto; }
+.steer.hint .sm-lang.on .sm-cue, .steer.hint .sm-lang.off .sm-cue { opacity: 0; pointer-events: none; }
+.sm-cuering { fill: none; stroke: var(--fr); stroke-width: 0.22; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.steer.hint .sm-cuering { animation: sm-pulse 2s ease-out infinite; }
+@keyframes sm-pulse { 0% { opacity: 0.9; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(3.2); } }
+.sm-cuetext { font: italic 600 2.3px var(--sans); fill: var(--fr); text-anchor: end; dominant-baseline: middle; }
+@media (prefers-reduced-motion: reduce) { .steer.hint .sm-cuering { animation: none; opacity: 0.8; transform: scale(2.4); } }
 .sm-arrow { stroke: var(--fr); stroke-width: 0.28; opacity: 0; transition: opacity 0.4s; }
 .sm-arrow.show { opacity: 0.8; }
 .sm-headp { fill: var(--fr); }
@@ -437,7 +446,7 @@ footer .wrap { display: grid; gap: 10px; }
     <h2>The model's language estimate causes it</h2>
     <div class="stack intro prose">
       <p>We train a simple linear classifier (a probe) on each model's hidden states to score each of 16 languages at every frame; we call this the model's <em>language estimate</em>. When the other language is present, the estimate for a span's own language drops, although the span's audio is unchanged.</p>
-      <p>This estimate is present in a low-dimensional <em>language subspace</em>, under 2% of each model's hidden dimensions. To test whether it causes interference, we edit the model at every position: we move the hidden state's position in this subspace to that of the average hidden state <i>c</i><sub><i>B</i></sub> of another language <i>B</i>. When PhoneticXeus transcribes an English recording, the audio stays the same and only the transcription changes. When the TTS model generates an English sentence, the speech it generates changes.</p>
+      <p>This estimate is present in a low-dimensional <em>language subspace</em>, under 2% of each model's hidden dimensions. To test whether it causes interference, we edit the model at every position: we move the hidden state's position in this subspace to that of the average hidden state <i>c</i><sub><i>B</i></sub> of another language <i>B</i>. When the phone recognizer transcribes an English recording, the audio stays the same and only the transcription changes. When the TTS model generates an English sentence, the speech it generates changes.</p>
     </div>
     <div class="eq" style="margin-top:18px" aria-label="h becomes h minus proj lang of h plus proj lang of c B">
       <span class="v">h</span> ← <span class="v">h</span> − proj<sub>lang</sub>(<span class="v">h</span>) + proj<sub>lang</sub>(<span class="v">c</span><sub><i>B</i></sub>)
@@ -1137,7 +1146,9 @@ footer .wrap { display: grid; gap: 10px; }
    language at the same distance from English, in the stored circular order; an arrow shows the edit.
    The random push points toward no language, so the map leaves the utterance at English.
    The TTS view (website/tts_steer.py, TS1-TS4) plays what the TTS generates for one English sentence per
-   language under the same three conditions, audio only; languages with no example are grayed. */
+   language under the same three conditions, audio only; languages with no example are grayed.
+   Until the reader first picks a language, a ring pulses around one language (Spanish) with a short
+   label, to show that the dots can be clicked. */
 (function () {
   "use strict";
   var root = document.getElementById("steer");
@@ -1202,6 +1213,14 @@ footer .wrap { display: grid; gap: 10px; }
     });
     nodes[L] = { g: g, dot: dot, lab: lab };
   });
+
+  // the hint: inside the language's group, so a click on the label picks it too
+  var HL = D.targets.es ? "es" : langs[0];
+  (function () {
+    var p = pos(HL), q = pos(HL, RL - 3.2), g = sv("g", { class: "sm-cue" }, nodes[HL].g);
+    sv("circle", { cx: p[0], cy: p[1], r: 1.05, class: "sm-cuering" }, g);
+    sv("text", { x: q[0], y: q[1], class: "sm-cuetext" }, g).textContent = "Click to steer";
+  })();
 
   /* ---------- the transcript rows: wrapped to the width, with a label column on every line ---------- */
   var rows = $("steer-rows"), cols = [], labEdit = "Steered", labDim = true, breaks = null;
@@ -1339,6 +1358,7 @@ footer .wrap { display: grid; gap: 10px; }
   }
   function choose(L, steer) {
     if (st.view === "tts" && !TT[L]) return;
+    if (steer) { picked = true; hint(false); }
     if (L !== st.B) ttsStop();
     st.B = L;
     if (steer && st.mode === "base") st.mode = "set";
@@ -1404,6 +1424,14 @@ footer .wrap { display: grid; gap: 10px; }
     $("steer-view").appendChild(b);
   });
 
+  // the hint: shown once the intro has steered toward the default target, until the first pick
+  var picked = false, hintT = null;
+  function hint(on) {
+    clearTimeout(hintT); hintT = null;
+    if (!on || picked) { root.classList.remove("hint"); return; }
+    hintT = setTimeout(function () { root.classList.add("hint"); }, reduced ? 0 : 1800);
+  }
+
   // first view: unedited, then steered toward the default target, once
   var introT = null;
   function stopIntro() { if (introT) { clearTimeout(introT); introT = null; } }
@@ -1411,6 +1439,7 @@ footer .wrap { display: grid; gap: 10px; }
   // ?steer=set:hi_in (or ?steer=tts:set:es) pins the widget at a view, mode and target, with no intro (for screenshots)
   var pin = /[?&]steer=(?:(tts):)?(base|set|rand)(?::([A-Za-z_]+))?/.exec(location.search);
   if (pin) {
+    picked = true;
     if (pin[1]) setView("tts");
     if (pin[3] && D.targets[pin[3]] && (!pin[1] || TT[pin[3]])) st.B = pin[3];
     setMode(pin[2], true);
@@ -1424,6 +1453,14 @@ footer .wrap { display: grid; gap: 10px; }
     }, { threshold: 0.5 });
     io.observe(svg);
   } else setMode("set", true);
+  if (!pin) {
+    if ("IntersectionObserver" in window) {
+      var io2 = new IntersectionObserver(function (es) {
+        if (es[0].isIntersecting) { io2.disconnect(); hint(true); }
+      }, { threshold: 0.5 });
+      io2.observe(svg);
+    } else hint(true);
+  }
 })();
 </script>
 
