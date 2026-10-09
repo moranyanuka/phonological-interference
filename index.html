@@ -347,7 +347,12 @@ footer .wrap { display: grid; gap: 10px; }
 .stage-lines .cell:not(.tref) { animation: none; }            /* every row is drawn in full, no fade-in */
 .stage-lines .cell.cur { outline: 2px solid var(--ink); outline-offset: 1px; }
 .hs-label { grid-area: lab; display: flex; gap: 12px; align-items: center; }
-.hs-play { padding: 4px; border-radius: 50%; flex: none; }
+.hs-play { padding: 4px; border-radius: 50%; flex: none; position: relative; }
+/* the cue (teaser.js): the steering map's pulsing ring, around SEP's play button until the first play */
+.hs-cue { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--fr); opacity: 0; pointer-events: none; }
+.stage.cue .hs-cue { animation: hs-pulse 2s ease-out infinite; }
+@keyframes hs-pulse { 0% { opacity: 0.9; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.9); } }
+@media (prefers-reduced-motion: reduce) { .stage.cue .hs-cue { animation: none; opacity: 0.8; transform: scale(1.3); } }
 .hs-play .ic { width: 28px; height: 28px; font-size: 11px; }
 .hs-nm { font-weight: 700; font-size: 19px; white-space: nowrap; line-height: 1.2; }
 .hs-nm .mk { display: inline-block; width: 17px; font-size: 12px; }
@@ -798,7 +803,9 @@ footer .wrap { display: grid; gap: 10px; }
 <script>/* The hero: SEP, TOG and WLE each in its own strip (what the model hears, and a schematic language
    estimate), above one set of aligned transcript rows drawn in full; the English span alone unless the
    French toggle is on. Nothing plays until a strip is pressed; the pressed strip's row stays selected
-   and, while it plays, marks the phoneme under the playhead (and the reference phoneme above it). Data: website/teaser.py (TV1-TV3) and the explorer's. */
+   and, while it plays, marks the phoneme under the playhead (and the reference phoneme above it). Until
+   the first play, a ring pulses around SEP's play button (the steering map's cue, without its label).
+   Data: website/teaser.py (TV1-TV3) and the explorer's. */
 (function () {
   "use strict";
   var stage = document.getElementById("stage");
@@ -943,6 +950,7 @@ footer .wrap { display: grid; gap: 10px; }
     });
   }
   function start(c, segI, segT) {
+    uncue();
     silenceOthers();
     audio.pause();
     st.c = c; st.sel = c; st.seg = segI; st.segT = segT;
@@ -968,6 +976,7 @@ footer .wrap { display: grid; gap: 10px; }
     }
   }
   function hearWord(w) {
+    uncue();
     silenceOthers();
     stop();
     audio.src = new URL(it.audio.human, document.baseURI).href;
@@ -1026,6 +1035,22 @@ footer .wrap { display: grid; gap: 10px; }
     });
     S[key] = { row: row, btn: btn, cv: cv, ctx: cv.getContext("2d") };
   });
+
+  /* ---------- the cue: a ring pulses around SEP's play button until anything here first plays ---------- */
+  S.sep.btn.appendChild(el("span", "hs-cue"));
+  var cued = false, cueT = null;
+  function uncue() { cued = true; clearTimeout(cueT); stage.classList.remove("cue"); }
+  function cue() {
+    if (cued) return;
+    var reducedCue = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    cueT = setTimeout(function () { if (!cued) stage.classList.add("cue"); }, reducedCue ? 0 : 1800);
+  }
+  if ("IntersectionObserver" in window) {
+    var cio = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting) { cio.disconnect(); cue(); }
+    }, { threshold: 0.5 });
+    cio.observe(strips);
+  } else cue();
 
   function geom(cv, c) {
     var w = cv.clientWidth, g = c === "sep" ? GEO.gapPx : 0, sc = (w - g - 2 * GEO.pad) / dur;
