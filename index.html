@@ -91,7 +91,7 @@ p { margin: 0; }
 .authors { margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; column-gap: 26px; row-gap: 2px; font-weight: 600; font-size: 18px; }
 .affil { margin-top: 4px; color: var(--muted); font-size: 16px; }
 .tldr { padding-block: 28px 0; }
-.lede { margin: 0 auto; font: 400 22px/1.55 var(--serif); color: var(--ink); max-width: 880px; text-align: center; text-wrap: pretty; }
+.lede { margin: 0 auto; font: 400 22px/1.55 var(--serif); color: var(--ink); max-width: 880px; text-wrap: pretty; }   /* a centered block of left-aligned text, capped for line length */
 .lede .ipa { font-size: 1em; line-height: 1; color: var(--fr); }
 .lede em { font-style: italic; }
 .lede + .lede { margin-top: 0.8em; }
@@ -503,7 +503,7 @@ footer .wrap { display: grid; gap: 10px; }
   <div class="wrap">
     <h2>Examples</h2>
     <div class="stack intro prose">
-      <p class="lead-in">Each recording mixes English with one other language. Pick a model to compare its output under SEP, TOG and WLE. The two phone recognizers transcribe the original recording. The TTS model generates the sentence from its IPA instead, and the generated audio is transcribed back to IPA so all three models can be read the same way.</p>
+      <p class="lead-in">Each recording mixes English with one other language. Pick a model to compare its output under SEP, TOG and WLE. The phone recognizers transcribe the original recording. The TTS model generates the sentence from its IPA instead, and the generated audio is transcribed back to IPA so all three models can be read the same way.</p>
       <!-- <p class="note">We picked these three from the seven clearest cases in SwitchLingua: recordings where, for all three models, the worse span's recall drops by at least 0.5 from SEP to TOG and WLE brings it back to within 0.1 of SEP (for the TTS model, averaged over four sampling seeds; the page plays seed 0). Across all recordings with any interference, WLE recovers at least half of the drop in 79% of recordings for the TTS model, 57% for PhoneticXeus and 43% for POWSM.</p> -->
     </div>
 
