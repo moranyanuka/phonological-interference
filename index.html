@@ -309,6 +309,7 @@ footer .wrap { display: grid; gap: 10px; }
 .steer-seg { justify-self: start; flex-wrap: wrap; }
 .steer-sent { font: 400 16px/1.45 var(--serif); color: var(--muted); }
 .steer-sent .play { vertical-align: 2px; margin-right: 6px; }
+.steer-sent .steer-text { display: block; margin-top: 8px; }   /* the sentence on its own line, under the button */
 .play[data-playing="true"] .ic { background: var(--fr); }
 .steer-count { font-size: 16px; color: var(--muted); line-height: 1.45; min-height: 2.9em; }
 .steer-count .sc-n { font: 600 26px/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--ink); margin-right: 2px; }
@@ -393,6 +394,7 @@ footer .wrap { display: grid; gap: 10px; }
   display: grid; place-items: center; transition: transform 0.15s, background 0.15s;
 }
 .vid-play:hover { transform: scale(1.06); background: var(--ink); }
+.vid-play[hidden] { display: none; }   /* the button's own display would otherwise beat the browser's [hidden] */
 .vid-play .tri { width: 0; height: 0; margin-left: 6px; border-style: solid; border-width: 13px 0 13px 22px; border-color: transparent transparent transparent var(--video-bg); }
 @media (prefers-reduced-motion: reduce) { .vid-play { transition: none; } .vid-play:hover { transform: none; } }
 @media (max-width: 600px) { .vid-play { width: 60px; height: 60px; } .vid-play .tri { border-width: 10px 0 10px 17px; margin-left: 5px; } }
