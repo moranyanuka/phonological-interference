@@ -1041,15 +1041,16 @@ footer .wrap { display: grid; gap: 10px; }
     // one line: the edited count beside the unedited one, and what the transcript does
     var k = $("steer-count"), v = m === "base" ? t.base : t[m];
     k.textContent = "";
-    k.appendChild(el("b", "sc-n" + (m === "base" ? "" : " " + m), v.kept + "/" + v.tot));
-    var line = " English phonemes " + name + " lacks kept";
+    k.appendChild(el("b", "sc-n" + (m === "base" ? "" : " " + m), v.kept + " out of " + v.tot));
+    var line = " English phoneme" + (v.tot === 1 ? "" : "s") + " that " + name + " lacks " +
+      (v.kept === 1 ? "is" : "are") + " kept";
     if (m === "base") line += ". Pick a language on the map to steer toward it.";
     else {
-      line += " (unedited: " + t.base.kept + "/" + t.base.tot + ")";
+      line += " (unedited: " + t.base.kept + " out of " + t.base.tot + ")";
       if (m === "set") {
         var lost = t.set.o.filter(function (o) { return o === "partner" || o === "deleted"; }).length;
         var toB = t.set.o.filter(function (o) { return o === "partner"; }).length;
-        line += toB > lost / 2 ? ", most lost to " + name + " ones." : ".";
+        line += toB > lost / 2 ? ", most are lost to " + name + " ones." : ".";
       } else line += " after a random push of the same size.";
     }
     k.appendChild(document.createTextNode(line));
